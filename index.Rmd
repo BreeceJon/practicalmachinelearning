@@ -4,19 +4,79 @@ author: "Jon Breece"
 date: "December 26, 2015"
 output: html_document
 ---
+##Data Preparation
+I began by cleaning the data and removing variables with significant numbers of NA or NULL values and timestamp variables. The cleaned dataset -- *pml-training_CLEAN.csv* -- had 52 predictor variables.  
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+I then loaded the *caret* library, and I used createDataPartition function to split the training dataset in order to cross-validate the model before making predictions on the testing dataset supplied by the instructor.  I split the data into two and assigned 70 percent of the data to the training set.  The training set had 13,737 records.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+```{r datapreparation}
+library(caret)
+pml.training <- read.csv("C:/Users/Jon/Desktop/Coursera/Courses/Practical Machine Learning/Project/pml-training_CLEAN.csv")
+
+set.seed(111)
+inTrain <- createDataPartition(y=pml.training$classe,p=0.7,list=FALSE)
+training<- pml.training[inTrain,]
+testing<- pml.training[-inTrain,]
+dim(training)
+dim(testing)
+```
+
+##Building Model
+I chose to use random forest algorithm because of its high accuracy. I used the randomForest function from the *randomForest* package -- because of the expensiveness of the rf method in the *caret* package.  
+
+```{r buildingmodel}
+library(randomForest)
+rf_pml <- randomForest(classe~.,data=training,importance=TRUE)
+
+#Plot rf_pml
+plot(rf_pml)
+
+#Print results of model
+rf_pml
+```
+
+The estimate of error is *0.5 percent*.
+
+After 100 trees the model's error rate does not improve further.  In future work, I could speed processing by decreasing the number of trees built from 500 to 100.
+
+The variables with the highest importance are:
+*yaw_belt
+*roll_belt
+
+I plotted the data on these two variables and colored the points by class to examine visually patterns.  Each class clustered when mapped on these two variables.
 
 ```{r}
-summary(cars)
+#Explore variable importance
+varImpPlot(rf_pml)
+
+#Class plotted against two most important variables
+qplot(yaw_belt,roll_belt,col=classe,data=training)
 ```
 
-You can also embed plots, for example:
+##Cross Validation
+I used the remaining records from the instructor-supplied training data to cross-validate the model.  When I partitioned the data, I named this set testing. I built two confusion matrices using the two methods showed in the course -- with the base table function and with the confusionMatrix function from the caret package.
 
-```{r, echo=FALSE}
-plot(cars)
+**Cross Validation with held-out testing data (from the provided training data)**
+```{r}
+#Create a confusion matrix with base package table function
+pred <- predict(rf_pml,testing)
+testing$predRight <- pred==testing$classe
+table(pred,testing$classe)
+
+#Using caret package confusionMatrix function:
+confusionMatrix(data = pred,testing$classe)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+The error is *0.58 percent*.
+
+###Expected out of sample error###
+
+Because of this high accuracy (i.e., 99.4 percent; 95 percent confidence interval = 99.1 to 99.6 percent), I expected the out of sample error is less than *1 percent*.
+
+##Final Modeling
+The rf_pml model had *100 percent* accuracy predicting the class of the instructor-supplied test data.
+
+##Decisions
+1. I cleaned the data to decrease processing time since the majority of values in many of the data attributes were NA or NULL.
+2. I chose random forest because of its high accuracy in our previous work in this course.  I wanted to benefit from the ensemble nature of the model, a characteristic that lowers the risk of overfitting.
+3. I used the randomForest function from the *randomForest* package because of the long processing time when I used rf method in the *caret* package in my preliminary exploration of the data.
