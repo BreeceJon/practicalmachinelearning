@@ -40,12 +40,12 @@ The estimate of error is *0.5 percent*.
 After 100 trees the model's error rate does not improve further.  In future work, I could speed processing by decreasing the number of trees built from 500 to 100.
 
 The variables with the highest importance are:
-*yaw_belt
-*roll_belt
+yaw_belt
+roll_belt
 
 I plotted the data on these two variables and colored the points by class to examine visually patterns.  Each class clustered when mapped on these two variables.
 
-```{r}
+```{r variable_importance}
 #Explore variable importance
 varImpPlot(rf_pml)
 
@@ -57,7 +57,7 @@ qplot(yaw_belt,roll_belt,col=classe,data=training)
 I used the remaining records from the instructor-supplied training data to cross-validate the model.  When I partitioned the data, I named this set testing. I built two confusion matrices using the two methods showed in the course -- with the base table function and with the confusionMatrix function from the caret package.
 
 **Cross Validation with held-out testing data (from the provided training data)**
-```{r}
+```{r confusion_matrix}
 #Create a confusion matrix with base package table function
 pred <- predict(rf_pml,testing)
 testing$predRight <- pred==testing$classe

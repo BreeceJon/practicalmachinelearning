@@ -122,7 +122,7 @@ rf_pml</code></pre>
 ## E    0    0    1    8 2516 0.0035643564</code></pre>
 <p>The estimate of error is <em>0.5 percent</em>.</p>
 <p>After 100 trees the model’s error rate does not improve further. In future work, I could speed processing by decreasing the number of trees built from 500 to 100.</p>
-<p>The variables with the highest importance are: <em>yaw_belt </em>roll_belt</p>
+<p>The variables with the highest importance are: yaw_belt roll_belt</p>
 <p>I plotted the data on these two variables and colored the points by class to examine visually patterns. Each class clustered when mapped on these two variables.</p>
 <pre class="r"><code>#Explore variable importance
 varImpPlot(rf_pml)</code></pre>
